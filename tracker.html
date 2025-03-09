@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <title>Meal Tracker & Weekly Nutrient Report</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      background: #fff;
+      margin: auto;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #5D3FD3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #5D3FD3;
+      color: white;
+    }
+    .report {
+      margin-top: 20px;
+      font-size: 1.2em;
+      text-align: center;
+    }
+    .button {
+      display: block;
+      width: 200px;
+      margin: 20px auto;
+      padding: 10px;
+      text-align: center;
+      background-color: #5D3FD3;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .button:hover {
+      background-color: #4730a3;
+    }
+    .back_btn{
+      background-color: black;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Daily Meal Tracker</h1>
+    <!-- This section shows today’s day and whether it’s after 12 PM -->
+    <div id="todayInfo" style="text-align: center; font-weight: bold;"></div>
+    
+    <!-- Daily Meal Tracker Table -->
+    <table id="dailyTable">
+      <tr>
+        <th>Meal</th>
+        <th>Status</th>
+      </tr>
+      <tr>
+        <td>Breakfast</td>
+        <td><input type="checkbox" id="breakfast" onchange="updateDailyPercentage()"></td>
+      </tr>
+      <tr>
+        <td>Lunch</td>
+        <td><input type="checkbox" id="lunch" onchange="updateDailyPercentage()"></td>
+      </tr>
+      <tr>
+        <td>Evening Snacks</td>
+        <td><input type="checkbox" id="snacks" onchange="updateDailyPercentage()"></td>
+      </tr>
+      <tr>
+        <td>Dinner</td>
+        <td><input type="checkbox" id="dinner" onchange="updateDailyPercentage()"></td>
+      </tr>
+    </table>
+    
+    <!-- Daily Nutrient Intake Percentage -->
+    <div style="text-align: center; font-size: 1.2em;">
+      Today's Nutrient Intake: <span id="dailyPercentage">0%</span>
+    </div>
+    
+    <!-- Weekly Report Button -->
+    <button class="button" onclick="generateWeeklyReport()">Generate Weekly Report</button>
+    
+    <!-- Weekly Report Display -->
+    <div id="weeklyReport" class="report"></div>
+   
+    <div class="d-flex justify-content-end">
+      <button class="back_btn">
+      <a href="SL.html" class="btn btn-dark">Back</a>
+    </button>
+  </div>
+
+  </div>
+
+  <script>
+    /********* Data Setup *********/
+    // For demonstration, we use a simple object to store the weekly completion data.
+    // In a production system, you might use localStorage or a backend database.
+    // weeklyData stores the number of completed meals per day.
+    var weeklyData = {
+      "Sunday": 0,
+      "Monday": 0,
+      "Tuesday": 0,
+      "Wednesday": 0,
+      "Thursday": 0,
+      "Friday": 0,
+      "Saturday": 0
+    };
+
+    // List of meals per day (for percentage calculation)
+    const totalMealsPerDay = 4;
+
+    // Get current day and hour
+    var daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    var now = new Date();
+    var currentDay = daysOfWeek[now.getDay()];
+    var currentHour = now.getHours();
+
+    // On page load, show today's info.
+    document.getElementById("todayInfo").innerHTML = "Today is: " + currentDay + " (" + (currentHour >= 12 ? "After 12 PM" : "Before 12 PM") + ")";
+
+    /********* Update Daily Percentage *********/
+    function updateDailyPercentage() {
+      // Count the number of meals completed today based on checkbox status.
+      let completedCount = 0;
+      if(document.getElementById("breakfast").checked) completedCount++;
+      if(document.getElementById("lunch").checked) completedCount++;
+      if(document.getElementById("snacks").checked) completedCount++;
+      if(document.getElementById("dinner").checked) completedCount++;
+
+      // Calculate percentage for today.
+      let percentage = (completedCount / totalMealsPerDay) * 100;
+      document.getElementById("dailyPercentage").innerHTML = percentage + "%";
+
+      // Update the weeklyData object for the current day.
+      weeklyData[currentDay] = completedCount;
+    }
+
+    /********* Weekly Report Generation *********/
+    function generateWeeklyReport() {
+      // Calculate total completed meals across the week.
+      let totalCompleted = 0;
+      for (let day in weeklyData) {
+        totalCompleted += weeklyData[day];
+      }
+      let totalMealsWeek = totalMealsPerDay * 7;
+      let weeklyPercentage = (totalCompleted / totalMealsWeek) * 100;
+
+      // Display the weekly report.
+      document.getElementById("weeklyReport").innerHTML = 
+        "Weekly Nutrient Intake: " + weeklyPercentage.toFixed(2) + "%<br>" +
+        "Completed Meals: " + totalCompleted + " out of " + totalMealsWeek;
+    }
+
+    /********* Display Only Today’s Meals After 12 PM *********/
+    // In this example the tracker always displays "today's" meals.
+    // You can extend this logic to auto-advance or lock previous days.
+    if (currentHour >= 12) {
+      // For instance, if you want to hide other days’ data or trigger an auto-save,
+      // you can add that logic here.
+      // Currently, we simply show the daily tracker for the current day.
+      console.log("It is after 12 PM. Only today's meal tracker is active.");
+    }
+  </script>
+</body>
+</html>
